@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#003F88">
+  <title>求是学业助手 · SQTP</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <a class="brand" href="#courses" aria-label="求是学业助手首页">
+        <span class="brand-mark">学</span>
+        <span><strong>求是学业助手</strong><small>SQTP · AI 2026</small></span>
+      </a>
+      <p class="nav-caption">工作台</p>
+      <nav class="primary-nav">
+        <a href="#courses" data-nav="courses"><span class="nav-icon">⌂</span>课程</a>
+        <a href="#curriculum" data-nav="curriculum"><span class="nav-icon">▤</span>培养方案</a>
+        <a href="#gpa" data-nav="gpa"><span class="nav-icon">◒</span>绩点</a>
+        <a href="#me" data-nav="me"><span class="nav-icon">○</span>我的</a>
+      </nav>
+      <div class="sidebar-note">数据仅作规划参考<br>请以教务系统为准</div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div><h1 id="page-title">课程</h1><p id="page-subtitle">查询课程、查看修读进度并规划选课</p></div>
+        <div class="identity-chip"><span class="avatar avatar-small">林</span><span><b>林同学</b><small>2026级 · 人工智能</small></span></div>
+      </header>
+      <div id="app-view" class="page-content" tabindex="-1"></div>
+      <footer class="app-footer">本工具结果仅供学业规划参考，不替代浙江大学教务系统。</footer>
+    </main>
+  </div>
+  <div id="overlay-root"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js" defer></script>
+</body>
+</html>
