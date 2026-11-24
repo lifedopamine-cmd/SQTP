@@ -173,19 +173,20 @@ function renderProgressCard() {
 
 function renderCourseRow(course, includeAdd = false) {
   const status = recordStatus(course.id);
+  const selected = state.plan.includes(course.id);
   return `<div class="course-row">
     <div class="course-row-main" data-action="course-detail" data-id="${esc(course.id)}" role="button" tabindex="0">
       <span class="course-code">${esc(course.code)}</span><span class="course-name">${esc(course.name)}</span>
       <span class="course-meta">${course.credits.toFixed(1)} 学分 · ${esc(course.term)} · ${esc(course.instructor)}</span>
     </div>
     ${statusPill(status)}
-    ${includeAdd ? `<button class="icon-button" title="加入计划" data-action="add-plan" data-id="${esc(course.id)}">＋</button>` : `<span class="row-arrow">›</span>`}
+    ${includeAdd ? `<button class="icon-button plan-toggle ${selected ? 'selected' : ''}" title="${selected ? '取消选课' : '加入计划'}" aria-label="${selected ? '取消选课' : '加入选课模拟'}" data-action="${selected ? 'remove-plan' : 'add-plan'}" data-id="${esc(course.id)}">${selected ? '×' : '＋'}</button>` : `<span class="row-arrow">›</span>`}
   </div>`;
 }
 
 function scheduleMarkup() {
-  const days = ['一', '二', '三', '四', '五'];
-  const periods = ['1-2节', '3-4节', '5-6节', '7-8节'];
+  const days = ['一', '二', '三', '四', '五', '六', '日'];
+  const periods = Array.from({ length: 12 }, (_, index) => `第${index + 1}节`);
   const planCourses = state.plan.map(courseById).filter(course => course && course.term === state.plannerTerm);
   const collisions = [];
   const cell = (day, period) => {
@@ -216,16 +217,20 @@ function scheduleMarkup() {
 function renderCourses() {
   const results = overallCourseRows();
   const terms = ['全部学期', ...new Set(catalog.map(course => course.term))];
-  return `<div class="card search-row">
-      <label class="search-box"><span class="search-icon" aria-hidden="true">⌕</span><input id="course-search" type="search" placeholder="搜索课程名称、课程号或任课教师" value="${esc(state.query)}" aria-label="搜索课程"></label>
-      <select id="term-select" class="select-control" aria-label="筛选学期">${terms.map(term => `<option ${state.term === term ? 'selected' : ''}>${esc(term)}</option>`).join('')}</select>
-    </div>
-    <div class="section-heading"><h2>修读进度</h2><p>已修读、正在修读和计划修读共用同一份课程记录</p></div>
-    ${renderProgressCard()}
-    <div class="section-heading"><h2>课程查询与选课模拟</h2><p>示例课程信息 · 计划不会提交到教务系统</p></div>
-    <div class="course-layout">
+  return `<div class="courses-page">
+    <section class="course-progress-section">
+      <div class="section-heading"><h2>修读进度</h2><p>已修读、正在修读和计划修读共用同一份课程记录</p></div>
+      ${renderProgressCard()}
+    </section>
+    <section class="course-workspace">
+      <div class="section-heading"><h2>课程查询与选课模拟</h2><p>示例课程信息 · 计划不会提交到教务系统</p></div>
+      <div class="course-layout">
       <section class="card course-list-card">
         <div class="card-title-row"><h3>课程查询</h3><span class="pill pill-gray">${results.length} 门课程</span></div>
+        <div class="course-query-controls">
+          <label class="search-box"><span class="search-icon" aria-hidden="true">⌕</span><input id="course-search" type="search" placeholder="搜索课程名称、课程号或任课教师" value="${esc(state.query)}" aria-label="搜索课程"></label>
+          <select id="term-select" class="select-control" aria-label="筛选学期">${terms.map(term => `<option ${state.term === term ? 'selected' : ''}>${esc(term)}</option>`).join('')}</select>
+        </div>
         <div class="course-list">${results.length ? results.map(course => renderCourseRow(course, true)).join('') : '<div class="empty-state">没有匹配的课程</div>'}</div>
       </section>
       <section class="card planner-card">
@@ -233,7 +238,8 @@ function renderCourses() {
         <div class="schedule-tools"><span class="tiny muted">加入课程班次后自动检查时间冲突、先修要求和学分负担</span></div>
         ${scheduleMarkup()}
       </section>
-    </div>
+      </div>
+    </section>
     <div class="print-only print-history-block"><h2>历史 GPA 摘要</h2>${renderHistorySummaryForPrint()}</div>`;
 }
 
@@ -349,7 +355,7 @@ function renderHistoryYear(year) {
   return `<div class="back-row"><button class="btn btn-outline" data-action="back-gpa">← 返回绩点</button><span class="pill pill-blue">${esc(year)} 学年</span></div>
     <div class="year-summary"><div class="summary-box"><small>学年 GPA（常规口径）</small><strong>${historyGpa(rows).toFixed(2)}</strong></div><div class="summary-box"><small>计入课程</small><strong>${rows.length} 门</strong></div><div class="summary-box"><small>计入学分</small><strong>${rows.reduce((sum,row)=>sum+(courseById(row.courseId)?.credits||0),0).toFixed(1)}</strong></div></div>
     <div class="notice">此处为教务网课程记录的演示数据。真实版本需另行接入获准的数据来源；本原型不会登录或读取教务网。</div>
-    ${terms.map(term => `<section class="card card-pad"><div class="card-title-row"><h2 style="margin:0;font-size:15px">${esc(term)}</h2><span class="pill pill-gray">学期 GPA ${historyGpa(byTerm[term]).toFixed(2)}</span></div><table class="history-table"><thead><tr><th>课程</th><th>课程号</th><th>学分</th><th>总评</th><th>绩点</th></tr></thead><tbody>${byTerm[term].map(row => {
+    ${terms.map(term => `<section class="card card-pad"><div class="card-title-row"><h2 style="margin:0;font-size:17px">${esc(term)}</h2><span class="pill pill-gray">学期 GPA ${historyGpa(byTerm[term]).toFixed(2)}</span></div><table class="history-table"><thead><tr><th>课程</th><th>课程号</th><th>学分</th><th>总评</th><th>绩点</th></tr></thead><tbody>${byTerm[term].map(row => {
       const course = courseById(row.courseId);
       return `<tr><td>${esc(course?.name || row.courseId)}</td><td>${esc(course?.code || '—')}</td><td>${(course?.credits || 0).toFixed(1)}</td><td>${esc(row.score)}</td><td>${Number(row.gradePoint).toFixed(1)}</td></tr>`;
     }).join('')}</tbody></table></section>`).join('') || '<section class="card empty-state">该学年暂无已修课程记录</section>'}`;
@@ -391,6 +397,7 @@ function renderCourseDetail(id) {
 
 function render() {
   const route = routeFromHash();
+  document.body.classList.toggle('course-dashboard', route.page === 'courses');
   renderHeader(route);
   const view = route.page === 'courses' ? renderCourses()
     : route.page === 'curriculum' ? renderCurriculum()
